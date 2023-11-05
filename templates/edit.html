@@ -5,7 +5,7 @@
 {% block content %}
 <div class="content">
     <div class="row">
-        <div class="col-6">
+        <div class="col-12">
 
             <h1>Edit Rating</h1>
             <div class="flash">
@@ -14,7 +14,30 @@
                     {% endfor %}
             </div>
 
-            <h3><span><b>{{ movie.title }} ({{ movie.year }})</b> <em>by</em> {{ movie.director }}</span></h3>
+            <h4 class="space-above"><span><b>{{ movie.title }} ({{ movie.year }})</b> <em>by</em> {{ movie.director }}</span></h4>
+            <hr>
+            <p><strong>Modify Ranking</strong> <em>(current rank is {{ movie.ranking }})</em></p>
+
+            <div class="row">
+                <div class="col-3"></div>
+                <div class="col-3">
+                    <a href="{{ url_for('modify_ranking', id=movie.id, direction='up') }}">
+                        <button type="button" class="btn btn-outline-dark space-above">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"></path>
+                            </svg>
+                        </button></a>
+                </div>
+                <div class="col-3">
+                    <a href="{{ url_for('modify_ranking', id=movie.id, direction='down', form=form) }}">
+                        <button type="button" class="btn btn-outline-dark space-above">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"></path>
+                            </svg>
+                        </button></a>
+
+                </div>
+            </div>
             <hr>
             {{ render_form(form, novalidate=True) }}
 

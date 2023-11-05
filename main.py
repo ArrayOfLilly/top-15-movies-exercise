@@ -27,6 +27,7 @@ app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 
 bootstrap = Bootstrap5(app)
 app.config['BOOTSTRAP_BTN_STYLE'] = "dark"
+app.config['BOOTSTRAP_BTN_SIZE'] = "lg"
 
 db = SQLAlchemy()
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///movies-collection.db"
@@ -68,7 +69,6 @@ def validate_img_url():
 
 class EditMovieForm(FlaskForm):
 	rating = FloatField('Rating')
-	ranking = IntegerField('Personal Ranking')
 	review = TextAreaField('Personal Review')
 	img_url = StringField('Image URL')
 	submit = SubmitField('Submit')
@@ -134,7 +134,7 @@ def add():
 		except sqlalchemy.exc.IntegrityError:
 			flash('This Movie is already exists.')
 			return render_template('add.html', form=form)
-		return redirect('.')
+		return redirect('./sort')
 	else:
 		return render_template('add.html', form=form)
 
@@ -202,10 +202,8 @@ def get_movie_details():
 
 @app.route("/edit", methods=['GET', 'POST'])
 def edit():
-	print('edit')
 	form = EditMovieForm()
 	movie_id = request.args.get('id')
-	print(movie_id)
 	if request.method == 'GET':
 		with app.app_context():
 			movie = db.session.execute(db.select(Movie).where(Movie.id == movie_id)).scalar()
@@ -215,20 +213,20 @@ def edit():
 			movie_to_update = db.session.execute(db.select(Movie).where(Movie.id == movie_id)).scalar()
 			if form.rating.data:
 				movie_to_update.rating = form.rating.data
-			if form.ranking.data:
-				movie_to_update.ranking = form.ranking.data
 			if form.review.data:
 				movie_to_update.review = form.review.data
 			if form.img_url.data:
 				movie_to_update.img_url = form.img_url.data
 				movie_to_update.img_local = False
+			db.session.commit()
 			try:
 				db.session.commit()
 			except sqlalchemy.exc.IntegrityError:
-				flash('This Ranking is already taken.')
-		return redirect('../')
+				db.session.rollback()
+				db.session.commit()
+		return redirect('../sort')
 	else:
-		return redirect('../')
+		return redirect('../sort')
 
 
 @app.route("/del", methods=['GET', 'POST'])
@@ -238,7 +236,50 @@ def delete():
 		movie = db.session.execute(db.select(Movie).where(Movie.id == movie_id)).scalar()
 		db.session.delete(movie)
 		db.session.commit()
-	return redirect('../')
+	return redirect('../sort')
+
+@app.route('/sort')
+def reorder_ranking():
+	with app.app_context():
+		movie_list = db.session.execute(db.select(Movie).order_by(Movie.ranking)).scalars()
+		current_rank = 1
+		for movie in movie_list:
+				print(f'from: {movie.ranking} to {current_rank}')
+				movie.ranking = current_rank
+				current_rank += 1
+				db.session.commit()
+	return redirect('./')
+
+
+@app.route('/modify-ranking')
+def modify_ranking():
+	movie_id = request.args.get('id')
+	direction = request.args.get('direction')
+	with app.app_context():
+		movie = db.session.execute(db.select(Movie).where(Movie.id == movie_id)).scalar()
+		old_ranking = movie.ranking
+		if direction == 'up' and old_ranking > 1:
+			replaced_movie = db.session.execute(db.select(Movie).where(Movie.ranking == old_ranking-1)).scalar()
+			replaced_movie.ranking = 100000
+			db.session.commit()
+			movie.ranking = old_ranking - 1
+			db.session.commit()
+			replaced_movie.ranking = old_ranking
+			db.session.commit()
+		movie_list = db.session.execute(db.select(Movie).order_by(Movie.ranking)).scalars()
+		for m in movie_list:
+			max_rank = m.ranking
+		print(max_rank)
+		if direction == 'down' and old_ranking < max_rank:
+			replaced_movie = db.session.execute(db.select(Movie).where(Movie.ranking == old_ranking + 1)).scalar()
+			print(replaced_movie.ranking)
+			replaced_movie.ranking = 100000
+			db.session.commit()
+			movie.ranking = old_ranking + 1
+			db.session.commit()
+			replaced_movie.ranking = old_ranking
+			db.session.commit()
+	return redirect(url_for('edit', id=movie_id))
 
 
 if __name__ == '__main__':
