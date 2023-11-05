@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block title %}Edit Movies{% endblock %}
+
+{% block content %}
+<div class="content">
+    <div class="row">
+        <div class="col-6">
+
+            <h1>Edit Rating</h1>
+            <div class="flash">
+                    {% for message in get_flashed_messages() %}
+                    {{ message }}
+                    {% endfor %}
+            </div>
+
+            <h3><span><b>{{ movie.title }} ({{ movie.year }})</b> <em>by</em> {{ movie.director }}</span></h3>
+            <hr>
+            {{ render_form(form, novalidate=True) }}
+
+            <p class="space-above"><a href="{{ url_for('home') }}">See All Movies</a></p>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

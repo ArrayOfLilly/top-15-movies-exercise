@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}My Top 20 Movies{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="heading">My Top Movies</h1>
+    <p class="description">These are my all-time favourite movies.</p>
+    <div class="flash">
+        {% for message in get_flashed_messages() %}
+        {{ message }}
+        {% endfor %}
+    </div>
+
+    {% if movies == [] %}
+
+    <p>The Movie Library is empty.</p>
+    {% else %}
+
+    {% for movie in movies %}
+    <div class="card">
+
+
+        {% if movie.img_local == False %}
+        <div class="front" style="background-image:url( {{ url_for('static', filename='/img/'+ movie.img_url) }} );">
+            {% else %}
+            <div class="front" style="background-image:url( {{ movie.img_url }} );">
+                {% endif %}
+                <p class="large">{{ movie.ranking }}</p>
+            </div>
+            <div class="back">
+                <div>
+                    <div class="title">{{ movie.title }} <span class="release_date">({{ movie.year }})</span>
+                        <p class="director"><span class="normal">Directed by </span>{{ movie.director }}.</p>
+                    </div>
+                    <div class="rating">
+                        <label>{{ movie.rating }}</label>
+                        <i class="fas fa-star star"></i>
+                    </div>
+                    <p class="review">{{ movie.review }}</p>
+                    <p class="overview">{{ movie.synopsis }}</p>
+
+
+                    <a href="{{ url_for('edit', id=movie.id) }}" class="btn btn-dark">Update</a>
+                    <a href="{{ url_for('delete', id=movie.id) }}" class="btn btn-outline-dak">Delete</a>
+
+
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+    <div class="container text-center add">
+        <a href="{{ url_for('add') }}" class="btn btn-outline-dark">Add Movie Manually</a>
+        <a href="{{ url_for('add_from') }}" class="btn btn-outline-dark">Add Movie from MovieDB</a>
+
+    </div>
+
+    {% endblock %}
+
+
